@@ -3,9 +3,21 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/LoginAS.vue') },
-      { path: 'registerAS', component: () => import('pages/RegisterAS.vue') },
-      { path: 'loginad', component: () => import('pages/LoginAD.vue') },
+      {
+        path: '',
+        component: () => import('pages/LoginAS.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'registerAS',
+        component: () => import('pages/RegisterAS.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'loginad',
+        component: () => import('pages/LoginAD.vue'),
+        meta: { requiresAuth: false },
+      },
       {
         path: 'dashboardAD',
         component: () => import('pages/DashboardAD.vue'),

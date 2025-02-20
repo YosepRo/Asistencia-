@@ -11,13 +11,7 @@
           <div class="text-subtitle1 text-grey-7 q-mb-lg">Inicia sesión para continuar</div>
 
           <q-input v-model="email" label="Correo" type="email" dense class="input-style" />
-          <q-input
-            v-model="password"
-            label="Contraseña"
-            type="password"
-            dense
-            class="input-style"
-          />
+          <q-input v-model="password" label="Contraseña" type="password" dense class="input-style" />
 
           <q-btn label="Ingresar" color="black" class="login-btn q-mt-lg" @click="login()" />
         </div>
@@ -29,12 +23,19 @@
 <script>
 import { auth } from 'src/boot/firebase'
 import { signInWithEmailAndPassword } from 'firebase/auth'
+import { useAuthStore } from 'src/stores/authStore.js'
 
 export default {
   data() {
     return {
       email: '',
       password: '',
+    }
+
+  },
+  setup() {
+    return {
+      authStore: useAuthStore(), // Instanciar el store
     }
   },
   methods: {
@@ -49,7 +50,15 @@ export default {
       }
 
       try {
-        await signInWithEmailAndPassword(auth, this.email, this.password)
+        const { user } = await signInWithEmailAndPassword(auth, this.email, this.password)
+
+        this.authStore.login({
+          id: user.uid,
+          email: user.email,
+          name: user.displayName || null,
+        })
+
+
         this.$q.notify({
           color: 'positive',
           message: 'Inicio de sesión exitoso',
@@ -81,7 +90,8 @@ export default {
 
 /* Tarjeta con diseño moderno */
 .card-container {
-  width: 70vw; /* Se ajusta para que sea más grande */
+  width: 70vw;
+  /* Se ajusta para que sea más grande */
   height: 70vh;
   background-color: #ffffff;
   border-radius: 20px;
@@ -142,15 +152,18 @@ export default {
   color: #fff;
   transition: 0.3s;
 }
+
 .login-btn:hover {
   background-color: #78d9fc;
 }
 
 /* Media Queries para pantallas pequeñas (móviles) */
 @media (max-width: 768px) {
+
   /* Ajuste del tamaño de la tarjeta */
   .card-container {
-    width: 90%; /* Se ajusta el ancho para pantallas pequeñas */
+    width: 90%;
+    /* Se ajusta el ancho para pantallas pequeñas */
     height: auto;
   }
 
@@ -167,11 +180,13 @@ export default {
 
   /* Ajuste de los inputs y botones */
   .input-style {
-    font-size: 16px; /* Hacer los inputs más pequeños */
+    font-size: 16px;
+    /* Hacer los inputs más pequeños */
   }
 
   .login-btn {
-    font-size: 18px; /* Botón más pequeño en pantallas pequeñas */
+    font-size: 18px;
+    /* Botón más pequeño en pantallas pequeñas */
     padding: 12px;
   }
 }
