@@ -28,22 +28,29 @@
       <div class="text-h6">Detalles del día seleccionado:</div>
       <p>Fecha: {{ diaSeleccionado.toLocaleDateString() }}</p>
       <p v-if="asistencias[diaSeleccionado.toISOString().split('T')[0]]">
-        Hora de entrada: {{ asistencias[diaSeleccionado.toISOString().split('T')[0]].horaEntrada }}
+        <q-icon name="schedule" color="primary" /> Hora de entrada:
+        {{ asistencias[diaSeleccionado.toISOString().split('T')[0]].horaEntrada }}
         <span v-if="asistencias[diaSeleccionado.toISOString().split('T')[0]].minutosTarde > 0">
-          ({{ asistencias[diaSeleccionado.toISOString().split('T')[0]].minutosTarde }} minutos
+          ({{
+            formatMinutesLate(asistencias[diaSeleccionado.toISOString().split('T')[0]].minutosTarde)
+          }}
           tarde)
         </span>
       </p>
-      <p v-else>No hay registro de asistencia para este día.</p>
+      <p v-else>
+        <q-icon name="cancel" color="red" /> No hay registro de asistencia para este día.
+      </p>
     </div>
 
     <div class="total-tarde text-center q-mt-md">
-      Total minutos tarde este mes: <strong>{{ totalMinutesLate }}</strong>
+      <q-icon name="timer" color="orange" /> Total tiempo tarde este mes:
+      <strong>{{ formatMinutesLate(totalMinutesLate) }}</strong>
     </div>
   </q-page>
 </template>
+
 <script>
-import { ref, onMounted, computed } from 'vue' // Añade computed aquí
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
@@ -59,7 +66,6 @@ export default {
     const asistencias = ref({})
     const diaSeleccionado = ref(null)
 
-    // Usa computed para mesActual y añoActual
     const mesActual = computed(() => {
       return fechaActual.value.toLocaleString('default', { month: 'long' })
     })
@@ -81,12 +87,10 @@ export default {
       )
       const dias = []
 
-      // Rellenar con días vacíos hasta el primer día del mes
       for (let i = 0; i < primerDiaMes.getDay(); i++) {
         dias.push(null)
       }
 
-      // Rellenar con los días del mes
       for (let i = 1; i <= ultimoDiaMes.getDate(); i++) {
         dias.push(new Date(fechaActual.value.getFullYear(), fechaActual.value.getMonth(), i))
       }
@@ -99,10 +103,10 @@ export default {
 
       const fechaISO = dia.toISOString().split('T')[0]
       const hoy = new Date()
-      hoy.setHours(0, 0, 0, 0) // Asegurar que solo comparamos fechas sin horas
+      hoy.setHours(0, 0, 0, 0)
 
       if (dia > hoy) {
-        return 'dia-futuro' // No pintar los días futuros
+        return 'dia-futuro'
       }
 
       if (asistencias.value[fechaISO]) {
@@ -142,6 +146,16 @@ export default {
       const [horaEsperada, minutoEsperado] = entradaEsperada.split(':')
       const diff = (hora - horaEsperada) * 60 + (minuto - minutoEsperado)
       return diff > 0 ? diff : 0
+    }
+
+    const formatMinutesLate = (minutes) => {
+      if (minutes < 60) {
+        return `${minutes} minutos`
+      } else {
+        const hours = Math.floor(minutes / 60)
+        const mins = minutes % 60
+        return `${hours} hora${hours > 1 ? 's' : ''} y ${mins} minutos`
+      }
     }
 
     const isMonday = (date) => new Date(date).getDay() === 1
@@ -200,6 +214,7 @@ export default {
       prevMonth,
       nextMonth,
       goBack,
+      formatMinutesLate,
     }
   },
 }
@@ -268,7 +283,6 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Colores más vibrantes */
 .dia-asistio {
   background: #4caf50;
   color: #fff;
@@ -292,6 +306,11 @@ export default {
   color: #fff;
 }
 
+.dia-futuro {
+  background: #ffffff;
+  color: #000000;
+}
+
 .detalle-dia {
   background: #ffffff;
   padding: 14px;
@@ -311,10 +330,5 @@ export default {
   max-width: 380px;
   margin: auto;
   font-weight: bold;
-}
-
-.dia-futuro {
-  background: #ffffff; /* Mantenerlo blanco */
-  color: #000000; /* Color de texto normal */
 }
 </style>

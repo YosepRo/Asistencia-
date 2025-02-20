@@ -1,17 +1,33 @@
 <template>
   <q-page class="flex flex-center bg-white">
+    <!-- Botón de Volver más grande y notorio -->
+
     <q-card class="card-container">
       <q-card-section class="q-gutter-md flex full-height">
         <div class="logo-section">
           <img src="/logo.jpg" alt="Logo Empresa" class="company-logo" />
         </div>
+        <q-btn
+          flat
+          dense
+          icon="arrow_back"
+          label="Volver"
+          class="volver-btn"
+          @click="volverARegistro"
+        />
 
         <div class="login-section">
           <div class="text-h3 text-bold text-black">Administrador</div>
           <div class="text-subtitle1 text-grey-7 q-mb-lg">Inicia sesión para continuar</div>
 
           <q-input v-model="email" label="Correo" type="email" dense class="input-style" />
-          <q-input v-model="password" label="Contraseña" type="password" dense class="input-style" />
+          <q-input
+            v-model="password"
+            label="Contraseña"
+            type="password"
+            dense
+            class="input-style"
+          />
 
           <q-btn label="Ingresar" color="black" class="login-btn q-mt-lg" @click="login()" />
         </div>
@@ -24,56 +40,46 @@
 import { auth } from 'src/boot/firebase'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { useAuthStore } from 'src/stores/authStore.js'
+import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
 export default {
-  data() {
-    return {
-      email: '',
-      password: '',
-    }
-
-  },
   setup() {
-    return {
-      authStore: useAuthStore(), // Instanciar el store
-    }
-  },
-  methods: {
-    async login() {
-      if (!this.email || !this.password) {
-        this.$q.notify({
-          color: 'negative',
-          message: 'Por favor, complete todos los campos.',
-          icon: 'error',
-        })
+    const email = ref('')
+    const password = ref('')
+    const authStore = useAuthStore()
+    const router = useRouter()
+
+    const login = async () => {
+      if (!email.value || !password.value) {
         return
       }
 
       try {
-        const { user } = await signInWithEmailAndPassword(auth, this.email, this.password)
+        const { user } = await signInWithEmailAndPassword(auth, email.value, password.value)
 
-        this.authStore.login({
+        authStore.login({
           id: user.uid,
           email: user.email,
           name: user.displayName || null,
         })
 
-
-        this.$q.notify({
-          color: 'positive',
-          message: 'Inicio de sesión exitoso',
-          icon: 'check_circle',
-        })
-
-        this.$router.push('/dashboardAD') // Redirigir al dashboard
+        router.push('/dashboardAD') // Redirigir al dashboard
       } catch (error) {
-        this.$q.notify({
-          color: 'negative',
-          message: 'Error: ' + error.message,
-          icon: 'error',
-        })
+        console.error('Error al iniciar sesión:', error)
       }
-    },
+    }
+
+    const volverARegistro = () => {
+      router.push('/registerAS') // Redirigir a registerAS
+    }
+
+    return {
+      email,
+      password,
+      login,
+      volverARegistro,
+    }
   },
 }
 </script>
@@ -88,10 +94,30 @@ export default {
   align-items: center;
 }
 
+/* Botón de Volver Mejorado */
+.volver-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: #000000; /* Azul llamativo */
+  color: white;
+  font-size: 18px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
+}
+
+.volver-btn:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
 /* Tarjeta con diseño moderno */
 .card-container {
   width: 70vw;
-  /* Se ajusta para que sea más grande */
   height: 70vh;
   background-color: #ffffff;
   border-radius: 20px;
@@ -154,40 +180,39 @@ export default {
 }
 
 .login-btn:hover {
-  background-color: #78d9fc;
+  background-color: #58b0d6;
 }
 
 /* Media Queries para pantallas pequeñas (móviles) */
 @media (max-width: 768px) {
-
-  /* Ajuste del tamaño de la tarjeta */
   .card-container {
     width: 90%;
-    /* Se ajusta el ancho para pantallas pequeñas */
     height: auto;
   }
 
-  /* Ajuste del tamaño del logo */
   .company-logo {
     max-width: 80%;
     height: auto;
   }
 
-  /* Sección de login: Reducir los márgenes y el relleno */
   .login-section {
     padding: 20px;
   }
 
-  /* Ajuste de los inputs y botones */
   .input-style {
     font-size: 16px;
-    /* Hacer los inputs más pequeños */
   }
 
   .login-btn {
     font-size: 18px;
-    /* Botón más pequeño en pantallas pequeñas */
     padding: 12px;
+  }
+
+  .volver-btn {
+    top: 10px;
+    left: 10px;
+    font-size: 16px;
+    padding: 8px 16px;
   }
 }
 </style>
