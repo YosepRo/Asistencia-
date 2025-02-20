@@ -1,44 +1,35 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import routes from './routes'
-import { auth } from 'src/boot/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
+// import { createRouter, createWebHistory } from 'vue-router'
+//
+// import routes from './routes'
+//
+// const router = createRouter({
+//   history: createWebHistory(),
+//   routes,
+// })
+//
+// export default router
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-})
+import { defineRouter } from "#q-app/wrappers";
+import {
+  createMemoryHistory,
+  createRouter,
+  createWebHistory,
+} from "vue-router";
+import routes from "./routes";
+import { authGuard } from "./guards";
 
-let isAuthChecked = false
-let userAuthenticated = false
+export default defineRouter(function() {
+  const createHistory = process.env.SERVER
+    ? createMemoryHistory
+    : createWebHistory;
 
-const checkAuth = () => {
-  return new Promise((resolve) => {
-    if (isAuthChecked) {
-      resolve(userAuthenticated)
-      return
-    }
+  const Router = createRouter({
+    scrollBehavior: () => ({ left: 0, top: 0 }),
+    routes,
+    history: createHistory(process.env.VUE_ROUTER_BASE),
+  });
 
-    onAuthStateChanged(auth, (user) => {
-      userAuthenticated = !!user
-      isAuthChecked = true
-      resolve(userAuthenticated)
-    })
-  })
-}
+  Router.beforeEach(authGuard);
 
-router.beforeEach(async (to, from, next) => {
-  const requiresAuth = to.meta.requiresAuth
-
-  if (requiresAuth) {
-    const isAuthenticated = await checkAuth()
-    if (!isAuthenticated) {
-      next('/loginad')
-    } else {
-      next()
-    }
-  } else {
-    next()
-  }
-})
-
-export default router
+  return Router;
+});

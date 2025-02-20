@@ -71,7 +71,10 @@
 </template>
 
 <script>
+
+import { useAuthStore } from 'src/stores/authStore.js'
 export default {
+
   data() {
     return {
       drawer: false,
@@ -90,13 +93,24 @@ export default {
       this.$q.dark.set(true)
     }
   },
+  setup() {
+    return {
+      authStore: useAuthStore(), // Instanciar el store
+    }
+  },
   methods: {
     toggleDrawer() {
       this.drawer = !this.drawer
     },
     logout() {
+
+      // logout - localStorage
+      this.authStore.logout();
+
       // Aquí puedes agregar la lógica para cerrar sesión
       this.$router.push('/registerAS') // Redirige a la página de registro de asistencia
+
+
     },
     reloadPage() {
       this.$router.go(0) // Recarga la página actual (similar a un "refresh")
@@ -126,16 +140,20 @@ export default {
   color: rgb(65, 216, 239);
   padding-top: 20px;
   padding-bottom: 20px;
-  height: 100%; /* Asegura que el drawer ocupe toda la altura disponible */
-  min-height: 100vh; /* Limita la altura */
-  border-right: 3px solid red; /* Borde rojo solo en el lado derecho */
+  height: 100%;
+  /* Asegura que el drawer ocupe toda la altura disponible */
+  min-height: 100vh;
+  /* Limita la altura */
+  border-right: 3px solid red;
+  /* Borde rojo solo en el lado derecho */
   position: fixed;
   transition: width 0.3s ease;
 }
 
 /* Estilos para la fecha y hora */
 .date-time {
-  background-color: rgba(19, 237, 248, 0.2); /* Fondo oscuro semi-transparente */
+  background-color: rgba(19, 237, 248, 0.2);
+  /* Fondo oscuro semi-transparente */
   padding: 15px;
   margin-bottom: 15px;
   border-radius: 10px;
@@ -161,7 +179,8 @@ export default {
 .time span {
   font-size: 18px;
   font-weight: bold;
-  font-family: 'Arial', sans-serif; /* Estilo de letra elegante */
+  font-family: 'Arial', sans-serif;
+  /* Estilo de letra elegante */
 }
 
 /* Estilos para los items del menú */
@@ -222,6 +241,7 @@ export default {
   left: 60%;
   transform: translate(-50%, 0);
 }
+
 .mode-toggle-btn {
   color: white;
 }
@@ -229,14 +249,16 @@ export default {
 /* Estilo responsivo para el drawer en pantallas pequeñas */
 @media (max-width: 600px) {
   .drawer-custom {
-    width: 100%; /* El drawer ocupa todo el ancho en pantallas pequeñas */
+    width: 100%;
+    /* El drawer ocupa todo el ancho en pantallas pequeñas */
     max-width: 100%;
     padding-top: 10px;
     padding-bottom: 10px;
   }
 
   .center-image {
-    width: 80%; /* Reduzco el tamaño de la imagen en pantallas pequeñas */
+    width: 80%;
+    /* Reduzco el tamaño de la imagen en pantallas pequeñas */
     top: 50px;
   }
 }
